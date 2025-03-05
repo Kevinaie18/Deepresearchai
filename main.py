@@ -1,3 +1,10 @@
+import asyncio
+import sys
+
+# Fix for asyncio event loop issue with Torch
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 import streamlit as st
 from agents.web_scraper import WebScraperAgent
 from agents.data_processor import DataProcessorAgent
