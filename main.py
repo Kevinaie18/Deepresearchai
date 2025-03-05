@@ -1,42 +1,40 @@
-import asyncio
-import sys
-
-# Fix for asyncio event loop issue with Torch
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 import streamlit as st
-from agents.web_scraper import WebScraperAgent
-from agents.data_processor import DataProcessorAgent
-from agents.analysis_agent import AnalysisAgent
-from agents.strategy_agent import StrategyAgent
+from sentence_transformers import SentenceTransformer
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 
-# Title
+# Load the sentence transformer model
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
 st.title("Deep Research AI")
 
 # User input
-query = st.text_input("Enter your research topic:")
+query = st.text_input("Enter your research query:")
 
-if st.button("Run Research"):
+if st.button("Search"):
     if query:
-        st.write("### Web Scraping Results:")
-        scraper = WebScraperAgent()
-        raw_data = scraper.scrape(query)
-        st.write(raw_data)
+        # Simple web scraping example
+        url = f"https://www.google.com/search?q={query}"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
+            results = [link.get_text() for link in soup.find_all("h3")]
 
-        st.write("### Processed Data:")
-        processor = DataProcessorAgent()
-        structured_data = processor.process(raw_data)
-        st.write(structured_data)
+            # Generate embeddings for extracted results
+            embeddings = model.encode(results)
 
-        st.write("### AI Analysis:")
-        analysis = AnalysisAgent()
-        insights = analysis.analyze(structured_data)
-        st.write(insights)
-
-        st.write("### Strategy Suggestions:")
-        strategy = StrategyAgent()
-        recommendations = strategy.plan(insights)
-        st.write(recommendations)
+            # Display results
+            st.write("### Search Results")
+            df = pd.DataFrame({"Title": results})
+            st.dataframe(df)
+            
+            st.write("### Text Embeddings")
+            st.write(embeddings)
+        else:
+            st.error("Failed to retrieve search results.")
     else:
-        st.warning("Please enter a topic to research.")
+        st.warning("Please enter a query.")
+
