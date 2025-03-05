@@ -2,8 +2,5 @@ streamlit
 beautifulsoup4
 requests
 pandas
-transformers
-torch>=2.2.0
-torchvision
-torchaudio
-lxml
+sentence-transformers
+scikit-learn  # If ML features are needed
